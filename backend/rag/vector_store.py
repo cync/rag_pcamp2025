@@ -24,33 +24,54 @@ class VectorStore:
     
     def __init__(self):
         """Inicializar cliente Qdrant"""
-        # Railway pode fornecer QDRANT_URL ou usar host:port
+        # Suportar Qdrant Cloud (URL + API Key) ou Qdrant local (host:port)
         qdrant_url = os.getenv("QDRANT_URL")
+        qdrant_api_key = os.getenv("QDRANT_API_KEY")
         self.host = os.getenv("QDRANT_HOST", "localhost")
         self.port = int(os.getenv("QDRANT_PORT", "6333"))
         self.collection_name = os.getenv("QDRANT_COLLECTION_NAME", "product_camp_2025")
         
         try:
-            # Tentar usar URL se disponível (Railway pode fornecer)
-            if qdrant_url:
-                # Remover http:// ou https:// se presente
-                qdrant_url = qdrant_url.replace("http://", "").replace("https://", "")
-                if ":" in qdrant_url:
-                    self.host, port_str = qdrant_url.split(":", 1)
+            # Prioridade 1: Qdrant Cloud (URL + API Key)
+            if qdrant_url and qdrant_api_key:
+                # Qdrant Cloud usa URL completa com https://
+                if not qdrant_url.startswith("http"):
+                    qdrant_url = f"https://{qdrant_url}"
+                
+                self.client = QdrantClient(
+                    url=qdrant_url,
+                    api_key=qdrant_api_key,
+                    timeout=10
+                )
+                logger.info(f"Conectando ao Qdrant Cloud: {qdrant_url}")
+            
+            # Prioridade 2: URL sem API Key (pode ser Railway ou local)
+            elif qdrant_url:
+                # Remover http:// ou https:// se presente para host:port
+                qdrant_url_clean = qdrant_url.replace("http://", "").replace("https://", "")
+                if ":" in qdrant_url_clean:
+                    self.host, port_str = qdrant_url_clean.split(":", 1)
                     self.port = int(port_str)
                 else:
-                    self.host = qdrant_url
+                    self.host = qdrant_url_clean
+                
+                self.client = QdrantClient(
+                    host=self.host, 
+                    port=self.port,
+                    prefer_grpc=False,
+                    timeout=10
+                )
+                logger.info(f"Conectando ao Qdrant em {self.host}:{self.port}")
             
-            # Criar cliente Qdrant
-            # No Railway, usar apenas host (nome do serviço) sem http://
-            # Desabilitar check de compatibilidade para evitar warnings
-            self.client = QdrantClient(
-                host=self.host, 
-                port=self.port,
-                prefer_grpc=False,
-                timeout=10
-            )
-            logger.info(f"Tentando conectar ao Qdrant em {self.host}:{self.port}")
+            # Prioridade 3: Host:Port (local ou Railway service)
+            else:
+                self.client = QdrantClient(
+                    host=self.host, 
+                    port=self.port,
+                    prefer_grpc=False,
+                    timeout=10
+                )
+                logger.info(f"Conectando ao Qdrant em {self.host}:{self.port}")
             
             # Verificar se a collection existe (pode não existir ainda)
             # Não falhar se não conseguir conectar - pode ser que o Qdrant ainda não esteja pronto

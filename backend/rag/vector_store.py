@@ -41,27 +41,38 @@ class VectorStore:
                 self.client = QdrantClient(
                     url=qdrant_url,
                     api_key=qdrant_api_key,
-                    timeout=10
+                    timeout=10,
+                    prefer_grpc=False
                 )
                 logger.info(f"Conectando ao Qdrant Cloud: {qdrant_url}")
+                logger.info("Usando autenticação com API Key")
             
             # Prioridade 2: URL sem API Key (pode ser Railway ou local)
             elif qdrant_url:
-                # Remover http:// ou https:// se presente para host:port
-                qdrant_url_clean = qdrant_url.replace("http://", "").replace("https://", "")
-                if ":" in qdrant_url_clean:
-                    self.host, port_str = qdrant_url_clean.split(":", 1)
-                    self.port = int(port_str)
+                # Se a URL começa com http/https, usar como URL completa
+                if qdrant_url.startswith("http://") or qdrant_url.startswith("https://"):
+                    self.client = QdrantClient(
+                        url=qdrant_url,
+                        prefer_grpc=False,
+                        timeout=10
+                    )
+                    logger.info(f"Conectando ao Qdrant via URL: {qdrant_url}")
                 else:
-                    self.host = qdrant_url_clean
-                
-                self.client = QdrantClient(
-                    host=self.host, 
-                    port=self.port,
-                    prefer_grpc=False,
-                    timeout=10
-                )
-                logger.info(f"Conectando ao Qdrant em {self.host}:{self.port}")
+                    # Remover http:// ou https:// se presente para host:port
+                    qdrant_url_clean = qdrant_url.replace("http://", "").replace("https://", "")
+                    if ":" in qdrant_url_clean:
+                        self.host, port_str = qdrant_url_clean.split(":", 1)
+                        self.port = int(port_str)
+                    else:
+                        self.host = qdrant_url_clean
+                    
+                    self.client = QdrantClient(
+                        host=self.host, 
+                        port=self.port,
+                        prefer_grpc=False,
+                        timeout=10
+                    )
+                    logger.info(f"Conectando ao Qdrant em {self.host}:{self.port}")
             
             # Prioridade 3: Host:Port (local ou Railway service)
             else:
@@ -72,6 +83,7 @@ class VectorStore:
                     timeout=10
                 )
                 logger.info(f"Conectando ao Qdrant em {self.host}:{self.port}")
+                logger.warning("Usando host:port. Se você tem Qdrant Cloud, configure QDRANT_URL e QDRANT_API_KEY")
             
             # Verificar se a collection existe (pode não existir ainda)
             # Não falhar se não conseguir conectar - pode ser que o Qdrant ainda não esteja pronto
@@ -87,8 +99,22 @@ class VectorStore:
                 else:
                     logger.info(f"Collection '{self.collection_name}' encontrada")
             except Exception as e:
-                logger.warning(f"Não foi possível verificar collections: {str(e)}")
-                logger.warning("Isso é normal se o Qdrant ainda não estiver configurado ou acessível.")
+                error_msg = str(e)
+                logger.warning(f"Não foi possível verificar collections: {error_msg}")
+                
+                # Diagnóstico mais detalhado
+                if "404" in error_msg or "Not Found" in error_msg:
+                    logger.warning("Erro 404: Verifique se:")
+                    logger.warning("  1. QDRANT_URL está correto (URL completa do cluster)")
+                    logger.warning("  2. QDRANT_API_KEY está configurada (se usar Qdrant Cloud)")
+                    logger.warning("  3. QDRANT_HOST está correto (se usar serviço Railway)")
+                    if qdrant_url and qdrant_api_key:
+                        logger.info(f"Configurado: QDRANT_URL={qdrant_url[:50]}..., QDRANT_API_KEY={'*' * 10}")
+                    elif qdrant_url:
+                        logger.info(f"Configurado: QDRANT_URL={qdrant_url}")
+                    else:
+                        logger.info(f"Configurado: QDRANT_HOST={self.host}, QDRANT_PORT={self.port}")
+                
                 logger.warning("A collection será criada automaticamente durante a ingestão.")
                 # Não falhar aqui - permitir que a aplicação inicie mesmo sem Qdrant
         

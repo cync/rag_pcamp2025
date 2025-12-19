@@ -8,18 +8,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements primeiro (para cache de layers)
-COPY requirements.txt .
+COPY backend/requirements.txt ./requirements.txt
 
 # Instalar dependências Python
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copiar código
-COPY . .
+# Copiar código do backend
+COPY backend/ ./backend/
+WORKDIR /app/backend
 
 # Expor porta (Railway usa variável $PORT)
-EXPOSE $PORT
+EXPOSE ${PORT:-8000}
 
 # Comando para produção (Railway injeta $PORT)
-CMD gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}
+CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:${PORT:-8000}"]
 

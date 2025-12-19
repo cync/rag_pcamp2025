@@ -26,5 +26,6 @@ COPY backend/ ./
 EXPOSE 8000
 
 # Comando para produção - usar variável PORT do Railway
-CMD gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}
+# Usar formato JSON para evitar problemas com shell
+CMD ["sh", "-c", "gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}"]
 

@@ -24,26 +24,50 @@ class VectorStore:
     
     def __init__(self):
         """Inicializar cliente Qdrant"""
+        # Railway pode fornecer QDRANT_URL ou usar host:port
+        qdrant_url = os.getenv("QDRANT_URL")
         self.host = os.getenv("QDRANT_HOST", "localhost")
         self.port = int(os.getenv("QDRANT_PORT", "6333"))
         self.collection_name = os.getenv("QDRANT_COLLECTION_NAME", "product_camp_2025")
         
         try:
+            # Tentar usar URL se disponível (Railway pode fornecer)
+            if qdrant_url:
+                # Remover http:// ou https:// se presente
+                qdrant_url = qdrant_url.replace("http://", "").replace("https://", "")
+                if ":" in qdrant_url:
+                    self.host, port_str = qdrant_url.split(":", 1)
+                    self.port = int(port_str)
+                else:
+                    self.host = qdrant_url
+            
+            # Criar cliente Qdrant
+            # No Railway, usar apenas host (nome do serviço) sem http://
             self.client = QdrantClient(host=self.host, port=self.port)
-            logger.info(f"Conectado ao Qdrant em {self.host}:{self.port}")
+            logger.info(f"Tentando conectar ao Qdrant em {self.host}:{self.port}")
             
-            # Verificar se a collection existe
-            collections = self.client.get_collections().collections
-            collection_names = [c.name for c in collections]
-            
-            if self.collection_name not in collection_names:
-                logger.warning(
-                    f"Collection '{self.collection_name}' não encontrada. "
-                    "Execute o script de ingestão primeiro."
-                )
+            # Verificar se a collection existe (pode não existir ainda)
+            try:
+                collections = self.client.get_collections().collections
+                collection_names = [c.name for c in collections]
+                
+                if self.collection_name not in collection_names:
+                    logger.warning(
+                        f"Collection '{self.collection_name}' não encontrada. "
+                        "Execute o script de ingestão primeiro."
+                    )
+                else:
+                    logger.info(f"Collection '{self.collection_name}' encontrada")
+            except Exception as e:
+                logger.warning(f"Não foi possível verificar collections: {str(e)}")
+                # Não falhar aqui, pode ser que o Qdrant esteja acessível mas a API tenha mudado
         
         except Exception as e:
-            logger.error(f"Erro ao conectar ao Qdrant: {str(e)}")
+            logger.error(f"Erro ao conectar ao Qdrant em {self.host}:{self.port}: {str(e)}")
+            logger.error("Verifique se:")
+            logger.error("1. O serviço Qdrant está rodando no Railway")
+            logger.error("2. QDRANT_HOST está configurado corretamente (nome do serviço)")
+            logger.error("3. QDRANT_PORT está configurado (geralmente 6333)")
             raise
     
     def search(

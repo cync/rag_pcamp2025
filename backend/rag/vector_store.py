@@ -43,10 +43,17 @@ class VectorStore:
             
             # Criar cliente Qdrant
             # No Railway, usar apenas host (nome do serviço) sem http://
-            self.client = QdrantClient(host=self.host, port=self.port)
+            # Desabilitar check de compatibilidade para evitar warnings
+            self.client = QdrantClient(
+                host=self.host, 
+                port=self.port,
+                prefer_grpc=False,
+                timeout=10
+            )
             logger.info(f"Tentando conectar ao Qdrant em {self.host}:{self.port}")
             
             # Verificar se a collection existe (pode não existir ainda)
+            # Não falhar se não conseguir conectar - pode ser que o Qdrant ainda não esteja pronto
             try:
                 collections = self.client.get_collections().collections
                 collection_names = [c.name for c in collections]
@@ -60,7 +67,9 @@ class VectorStore:
                     logger.info(f"Collection '{self.collection_name}' encontrada")
             except Exception as e:
                 logger.warning(f"Não foi possível verificar collections: {str(e)}")
-                # Não falhar aqui, pode ser que o Qdrant esteja acessível mas a API tenha mudado
+                logger.warning("Isso é normal se o Qdrant ainda não estiver configurado ou acessível.")
+                logger.warning("A collection será criada automaticamente durante a ingestão.")
+                # Não falhar aqui - permitir que a aplicação inicie mesmo sem Qdrant
         
         except Exception as e:
             logger.error(f"Erro ao conectar ao Qdrant em {self.host}:{self.port}: {str(e)}")
@@ -68,7 +77,9 @@ class VectorStore:
             logger.error("1. O serviço Qdrant está rodando no Railway")
             logger.error("2. QDRANT_HOST está configurado corretamente (nome do serviço)")
             logger.error("3. QDRANT_PORT está configurado (geralmente 6333)")
-            raise
+            logger.warning("A aplicação continuará, mas funcionalidades RAG não funcionarão até o Qdrant estar configurado.")
+            # Não fazer raise - permitir que a aplicação inicie mesmo sem Qdrant
+            # O erro será capturado quando tentar usar o Qdrant
     
     def search(
         self,

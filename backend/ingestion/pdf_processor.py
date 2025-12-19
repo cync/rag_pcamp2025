@@ -74,22 +74,32 @@ class PDFProcessor:
         logger.info(f"Encontrados {len(pdf_files)} arquivos PDF")
         return [str(pdf) for pdf in pdf_files]
     
-    def parse_filename_metadata(self, filename: str) -> Dict[str, Optional[str]]:
+    def parse_filename_metadata(self, filename: str, pdf_directory: str = "") -> Dict[str, Optional[str]]:
         """
-        Tentar extrair metadados do nome do arquivo.
+        Tentar extrair metadados do nome do arquivo e diretório.
         
         Formato esperado (opcional):
         - "Titulo_Palestra_Palestrante_Tipo_Tema.pdf"
         - Ou usar valores padrão
         
+        Detecta automaticamente se está em dia1 ou dia2.
+        
         Args:
             filename: Nome do arquivo PDF
+            pdf_directory: Diretório do PDF (para detectar dia)
         
         Returns:
             Dicionário com metadados
         """
         # Remover extensão
         name = Path(filename).stem
+        
+        # Detectar dia do diretório
+        dia = None
+        if "dia1" in pdf_directory.lower():
+            dia = "Dia 1"
+        elif "dia2" in pdf_directory.lower():
+            dia = "Dia 2"
         
         # Tentar dividir por underscore ou hífen
         parts = name.replace("_", "-").split("-")
@@ -98,7 +108,8 @@ class PDFProcessor:
             "titulo_palestra": name,  # Padrão: usar nome completo
             "palestrante": "Desconhecido",
             "tipo": "palestra",  # Padrão
-            "tema": None
+            "tema": None,
+            "dia": dia  # Adicionar informação do dia
         }
         
         # Se tiver pelo menos 2 partes, tentar interpretar

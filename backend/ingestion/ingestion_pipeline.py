@@ -71,7 +71,10 @@ class IngestionPipeline:
                 logger.info(f"\nProcessando: {pdf_path}")
                 
                 # Extrair metadados do nome do arquivo
-                metadata = self.pdf_processor.parse_filename_metadata(pdf_path)
+                metadata = self.pdf_processor.parse_filename_metadata(
+                    pdf_path, 
+                    pdf_directory=self.pdf_processor.pdf_directory
+                )
                 metadata["fonte"] = "Product Camp 2025"
                 
                 # Extrair texto

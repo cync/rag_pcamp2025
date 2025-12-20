@@ -5,7 +5,7 @@ param(
     [int]$WaitSeconds = 30
 )
 
-$RailwayUrl = "https://web-production-42847.up.railway.app"
+$RailwayUrl = "https://pcamp2025.up.railway.app"
 
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "Processar PDFs via API - Railway (com Retry)" -ForegroundColor Cyan

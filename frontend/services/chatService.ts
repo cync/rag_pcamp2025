@@ -32,7 +32,7 @@ export const chatService = {
     } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error)
       throw error
-    },
+    }
   },
 
   async getPalestras(): Promise<Array<{
@@ -48,7 +48,7 @@ export const chatService = {
     } catch (error: any) {
       console.error('Erro ao buscar palestras:', error)
       return []
-    },
+    }
   },
 }
 

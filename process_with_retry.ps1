@@ -1,6 +1,6 @@
 # Script para processar PDFs com retry automatico
 param(
-    [string]$ApiKey = "zIm50kxry9lqtjsPWeJKhGQCoaDwfivF",
+    [string]$ApiKey = "fOj0k7thk2AxcSMVW1YMW6MsiRCD5YuB",
     [int]$MaxRetries = 5,
     [int]$WaitSeconds = 30
 )

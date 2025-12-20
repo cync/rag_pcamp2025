@@ -2,7 +2,7 @@
 # Uso: .\PROCESS_WITH_URL.ps1 -ApiKey "sua-chave" (opcional)
 
 param(
-    [string]$ApiKey = ""
+    [string]$ApiKey = "fOj0k7thk2AxcSMVW1YMW6MsiRCD5YuB"
 )
 
 $RailwayUrl = "https://web-production-42847.up.railway.app"

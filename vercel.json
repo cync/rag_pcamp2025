@@ -4,5 +4,10 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "rootDirectory": "frontend"
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://pcamp2025.up.railway.app/api/:path*"
+    }
+  ]
 }

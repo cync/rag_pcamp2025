@@ -22,12 +22,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Por isso colocamos DEPOIS da instalação de dependências
 COPY backend/ ./
 
-# Expor porta (Railway usa variável PORT)
+# Expor porta (Railway usa variável PORT dinamicamente)
 EXPOSE 8000
 
 # Comando para produção
-# Railway injeta PORT como variável de ambiente
-# Usar formato exec direto (sem shell)
-ENV PORT=8000
-CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
+# Railway injeta PORT como variável de ambiente dinamicamente
+# Usar shell para expandir variável PORT do Railway
+# Bind em 0.0.0.0 para aceitar conexões de qualquer IP (produção)
+CMD ["sh", "-c", "gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}"]
 

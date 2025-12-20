@@ -12,6 +12,7 @@ import logging
 from api.chat import chat_router
 from api.health import health_router
 from api.ingestion import ingestion_router
+from api.palestras import palestras_router
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -45,6 +46,7 @@ app.add_middleware(
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(health_router, prefix="/api", tags=["health"])
 app.include_router(ingestion_router, prefix="/api", tags=["ingestion"])
+app.include_router(palestras_router, prefix="/api", tags=["palestras"])
 
 
 @app.get("/")

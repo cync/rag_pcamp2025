@@ -175,6 +175,22 @@ class VectorStore:
                         )
                     )
                 
+                if "titulo_palestra" in filters:
+                    conditions.append(
+                        FieldCondition(
+                            key="titulo_palestra",
+                            match=MatchValue(value=filters["titulo_palestra"])
+                        )
+                    )
+                
+                if "dia" in filters:
+                    conditions.append(
+                        FieldCondition(
+                            key="dia",
+                            match=MatchValue(value=filters["dia"])
+                        )
+                    )
+                
                 if conditions:
                     query_filter = Filter(must=conditions)
             

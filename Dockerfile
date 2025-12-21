@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Por isso colocamos DEPOIS da instalação de dependências
 COPY backend/ ./
 
+# Copiar PDFs para o container
+COPY data/pdfs/ ./data/pdfs/
+
 # Expor porta (Railway usa variável PORT dinamicamente)
 EXPOSE 8000
 

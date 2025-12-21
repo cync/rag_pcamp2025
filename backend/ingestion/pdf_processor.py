@@ -65,13 +65,16 @@ class PDFProcessor:
     
     def get_all_pdfs(self) -> List[str]:
         """
-        Listar todos os PDFs no diretório.
+        Listar todos os PDFs no diretório e subdiretórios.
         
         Returns:
             Lista de caminhos para arquivos PDF
         """
-        pdf_files = list(self.pdf_directory.glob("*.pdf"))
-        logger.info(f"Encontrados {len(pdf_files)} arquivos PDF")
+        # Buscar recursivamente em todos os subdiretórios
+        pdf_files = list(self.pdf_directory.rglob("*.pdf"))
+        logger.info(f"Encontrados {len(pdf_files)} arquivos PDF em {self.pdf_directory}")
+        if pdf_files:
+            logger.info(f"PDFs encontrados: {[str(p.name) for p in pdf_files[:5]]}...")
         return [str(pdf) for pdf in pdf_files]
     
     def parse_filename_metadata(self, filename: str, pdf_directory: str = "") -> Dict[str, Optional[str]]:

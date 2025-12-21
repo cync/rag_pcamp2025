@@ -60,8 +60,9 @@ class EmbeddingGenerator:
             
             except (APIConnectionError, APIError) as e:
                 if attempt < max_retries - 1:
-                    wait_time = min((2 ** attempt) + (attempt * 0.5), 30)  # Backoff exponencial, max 30s
-                    logger.warning(f"Erro de conexão OpenAI (tentativa {attempt + 1}/{max_retries}): {str(e)}. Aguardando {wait_time:.1f}s...")
+                    # Intervalo de 10 minutos (600 segundos) entre tentativas
+                    wait_time = 600  # 10 minutos
+                    logger.warning(f"Erro de conexão OpenAI (tentativa {attempt + 1}/{max_retries}): {str(e)}. Aguardando {wait_time/60:.1f} minutos...")
                     time.sleep(wait_time)
                 else:
                     logger.error(f"Erro ao gerar embedding após {max_retries} tentativas: {str(e)}")

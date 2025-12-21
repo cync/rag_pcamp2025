@@ -34,13 +34,20 @@ app = FastAPI(
 # Configurar CORS
 cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001,https://rag-pcamp2025.vercel.app")
 cors_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
-# Adicionar wildcard para desenvolvimento ou permitir todas as origens do Vercel
-if os.getenv("ENVIRONMENT") == "production":
-    # Em produção, permitir apenas origens específicas
-    logger.info(f"CORS configurado para origens: {cors_origins}")
-else:
-    # Em desenvolvimento, permitir localhost
-    cors_origins.extend(["http://localhost:3000", "http://localhost:3001"])
+
+# Adicionar localhost por padrão se não estiver em produção
+if os.getenv("ENVIRONMENT") != "production":
+    if "http://localhost:3000" not in cors_origins:
+        cors_origins.append("http://localhost:3000")
+    if "http://localhost:3001" not in cors_origins:
+        cors_origins.append("http://localhost:3001")
+
+# Adicionar URL do Vercel por padrão se não estiver na lista
+vercel_url = "https://rag-pcamp2025.vercel.app"
+if vercel_url not in cors_origins:
+    cors_origins.append(vercel_url)
+
+logger.info(f"CORS configurado para {len(cors_origins)} origens: {cors_origins}")
 
 app.add_middleware(
     CORSMiddleware,

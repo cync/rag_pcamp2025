@@ -16,9 +16,9 @@ docs/
 frontend/
 node_modules/
 
-# Data
-data/pdfs/
-*.pdf
+# Data (mas permitir PDFs para processamento)
+# data/pdfs/ - REMOVIDO: PDFs precisam estar no container
+# *.pdf - REMOVIDO: PDFs precisam estar no container
 
 # IDE
 .vscode/

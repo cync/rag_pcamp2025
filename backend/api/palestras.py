@@ -18,12 +18,23 @@ async def list_palestras():
     Retorna lista única de palestras com metadados.
     """
     try:
+        logger.info("Iniciando busca de palestras...")
         vector_store = VectorStore()
         
-        # Buscar todas as palestras únicas
-        # Usar uma busca genérica para obter metadados
+        # Verificar se a collection existe
         try:
-            # Tentar buscar alguns pontos para obter metadados
+            collections = vector_store.client.get_collections().collections
+            collection_names = [c.name for c in collections]
+            if vector_store.collection_name not in collection_names:
+                logger.warning(f"Collection '{vector_store.collection_name}' não encontrada")
+                return []
+        except Exception as e:
+            logger.error(f"Erro ao verificar collections: {str(e)}")
+            return []
+        
+        # Buscar todas as palestras únicas
+        try:
+            logger.info(f"Buscando pontos na collection '{vector_store.collection_name}'...")
             search_results = vector_store.client.scroll(
                 collection_name=vector_store.collection_name,
                 limit=1000,  # Buscar muitos para ter todas as palestras
@@ -31,13 +42,20 @@ async def list_palestras():
                 with_vectors=False
             )
             
+            points = search_results[0]  # search_results é uma tupla (points, next_page_offset)
+            logger.info(f"Encontrados {len(points)} pontos no Qdrant")
+            
+            if not points:
+                logger.warning("Nenhum ponto encontrado no Qdrant")
+                return []
+            
             # Extrair palestras únicas
             palestras_map = {}
-            for point in search_results[0]:  # search_results é uma tupla (points, next_page_offset)
+            for point in points:
                 payload = point.payload
                 titulo = payload.get("titulo_palestra", "Desconhecido")
                 
-                if titulo not in palestras_map:
+                if titulo and titulo != "Desconhecido" and titulo not in palestras_map:
                     palestras_map[titulo] = {
                         "titulo_palestra": titulo,
                         "palestrante": payload.get("palestrante", "Desconhecido"),
@@ -47,13 +65,12 @@ async def list_palestras():
                     }
             
             palestras = list(palestras_map.values())
-            logger.info(f"Encontradas {len(palestras)} palestras únicas")
+            logger.info(f"Encontradas {len(palestras)} palestras únicas: {[p['titulo_palestra'] for p in palestras]}")
             
             return palestras
             
         except Exception as e:
-            logger.warning(f"Erro ao buscar palestras: {str(e)}")
-            # Retornar lista vazia se não conseguir buscar
+            logger.error(f"Erro ao buscar palestras do Qdrant: {str(e)}", exc_info=True)
             return []
     
     except Exception as e:

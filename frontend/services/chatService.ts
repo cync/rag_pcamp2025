@@ -43,10 +43,15 @@ export const chatService = {
     dia?: string | null
   }>> {
     try {
+      console.log('Buscando palestras de:', apiClient.defaults.baseURL)
       const response = await apiClient.get('/api/palestras')
-      return response.data
+      console.log('Resposta da API:', response.data)
+      return response.data || []
     } catch (error: any) {
       console.error('Erro ao buscar palestras:', error)
+      console.error('Status:', error.response?.status)
+      console.error('Data:', error.response?.data)
+      console.error('URL:', error.config?.url)
       return []
     }
   },

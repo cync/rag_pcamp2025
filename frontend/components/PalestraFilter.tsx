@@ -27,10 +27,16 @@ export default function PalestraFilter({
   useEffect(() => {
     const loadPalestras = async () => {
       try {
+        setIsLoading(true)
         const data = await chatService.getPalestras()
+        console.log('Palestras carregadas:', data)
         setPalestras(data)
-      } catch (error) {
+        if (data.length === 0) {
+          console.warn('Nenhuma palestra encontrada. Verifique se os PDFs foram processados.')
+        }
+      } catch (error: any) {
         console.error('Erro ao carregar palestras:', error)
+        console.error('Detalhes do erro:', error.response?.data || error.message)
       } finally {
         setIsLoading(false)
       }

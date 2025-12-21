@@ -61,8 +61,9 @@ class RAGEngine:
         """
         try:
             # 1. Gerar embedding da pergunta
+            # Usar retry curto (30s) para requisições HTTP síncronas - não bloquear usuário por 10 minutos
             logger.debug("Gerando embedding da pergunta...")
-            question_embedding = self.embedding_generator.generate(question)
+            question_embedding = self.embedding_generator.generate(question, max_retries=3, retry_interval=30)
             
             # 2. Buscar chunks relevantes no Qdrant
             logger.debug("Buscando chunks relevantes...")

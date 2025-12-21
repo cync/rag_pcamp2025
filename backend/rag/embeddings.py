@@ -35,13 +35,15 @@ class EmbeddingGenerator:
         
         logger.info("EmbeddingGenerator inicializado")
     
-    def generate(self, text: str, max_retries: int = 5) -> List[float]:
+    def generate(self, text: str, max_retries: int = 5, retry_interval: int = 600) -> List[float]:
         """
         Gerar embedding para um texto.
         
         Args:
             text: Texto para gerar embedding
             max_retries: Número máximo de tentativas
+            retry_interval: Intervalo em segundos entre tentativas (padrão: 600s = 10 minutos)
+                           Use valores menores (30-60s) para requisições HTTP síncronas
         
         Returns:
             Lista de floats representando o embedding
@@ -60,9 +62,9 @@ class EmbeddingGenerator:
             
             except (APIConnectionError, APIError) as e:
                 if attempt < max_retries - 1:
-                    # Intervalo de 10 minutos (600 segundos) entre tentativas
-                    wait_time = 600  # 10 minutos
-                    logger.warning(f"Erro de conexão OpenAI (tentativa {attempt + 1}/{max_retries}): {str(e)}. Aguardando {wait_time/60:.1f} minutos...")
+                    wait_time = retry_interval
+                    wait_minutes = wait_time / 60
+                    logger.warning(f"Erro de conexão OpenAI (tentativa {attempt + 1}/{max_retries}): {str(e)}. Aguardando {wait_minutes:.1f} minutos...")
                     time.sleep(wait_time)
                 else:
                     logger.error(f"Erro ao gerar embedding após {max_retries} tentativas: {str(e)}")

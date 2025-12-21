@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY backend/ ./
 
 # Copiar PDFs para o container
-COPY data/pdfs/ ./data/pdfs/
+# Railway usa o diretório raiz como contexto, então copiamos de lá
+COPY data/ ./data/
 
 # Expor porta (Railway usa variável PORT dinamicamente)
 EXPOSE 8000

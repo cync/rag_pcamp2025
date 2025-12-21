@@ -23,7 +23,13 @@ class EmbeddingGenerator:
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY não encontrada nas variáveis de ambiente")
         
-        self.client = OpenAI(api_key=self.openai_api_key)
+        # Configurar cliente com timeout maior e retry
+        import httpx
+        self.client = OpenAI(
+            api_key=self.openai_api_key,
+            timeout=httpx.Timeout(60.0, connect=10.0),  # 60s total, 10s para conectar
+            max_retries=3
+        )
         self.model = "text-embedding-ada-002"
         self.dimension = 1536
         

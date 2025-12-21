@@ -73,7 +73,7 @@ class IngestionPipeline:
                 # Extrair metadados do nome do arquivo
                 metadata = self.pdf_processor.parse_filename_metadata(
                     pdf_path, 
-                    pdf_directory=self.pdf_processor.pdf_directory
+                    pdf_directory=str(self.pdf_processor.pdf_directory)
                 )
                 metadata["fonte"] = "Product Camp 2025"
                 

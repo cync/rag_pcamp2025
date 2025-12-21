@@ -77,7 +77,7 @@ class PDFProcessor:
             logger.info(f"PDFs encontrados: {[str(p.name) for p in pdf_files[:5]]}...")
         return [str(pdf) for pdf in pdf_files]
     
-    def parse_filename_metadata(self, filename: str, pdf_directory: str = "") -> Dict[str, Optional[str]]:
+    def parse_filename_metadata(self, filename: str, pdf_directory = None) -> Dict[str, Optional[str]]:
         """
         Tentar extrair metadados do nome do arquivo e diretório.
         
@@ -99,10 +99,13 @@ class PDFProcessor:
         
         # Detectar dia do diretório
         dia = None
-        if "dia1" in pdf_directory.lower():
-            dia = "Dia 1"
-        elif "dia2" in pdf_directory.lower():
-            dia = "Dia 2"
+        if pdf_directory:
+            # Converter para string se for Path object
+            pdf_dir_str = str(pdf_directory)
+            if "dia1" in pdf_dir_str.lower():
+                dia = "Dia 1"
+            elif "dia2" in pdf_dir_str.lower():
+                dia = "Dia 2"
         
         # Tentar dividir por underscore ou hífen
         parts = name.replace("_", "-").split("-")

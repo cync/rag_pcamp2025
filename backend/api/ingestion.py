@@ -37,15 +37,28 @@ async def run_ingestion(x_api_key: Optional[str] = Header(None)):
             )
     
     try:
+        import threading
         from ingestion.ingestion_pipeline import IngestionPipeline
         
         logger.info("Iniciando ingestão via API endpoint")
-        pipeline = IngestionPipeline()
-        pipeline.run()
         
+        # Executar em thread separada para não bloquear o worker
+        def run_ingestion():
+            try:
+                pipeline = IngestionPipeline()
+                pipeline.run()
+                logger.info("Ingestão concluída com sucesso")
+            except Exception as e:
+                logger.error(f"Erro na ingestão: {str(e)}", exc_info=True)
+        
+        # Iniciar thread para processamento em background
+        thread = threading.Thread(target=run_ingestion, daemon=False)
+        thread.start()
+        
+        # Retornar imediatamente - processamento continua em background
         return {
-            "status": "success",
-            "message": "Ingestion completed successfully"
+            "status": "started",
+            "message": "Ingestion started in background. Check logs for progress."
         }
     except Exception as e:
         logger.error(f"Erro na ingestão: {str(e)}", exc_info=True)

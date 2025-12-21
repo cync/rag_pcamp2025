@@ -33,6 +33,7 @@ EXPOSE 8000
 # Railway injeta PORT como variável de ambiente dinamicamente
 # Usar shell para expandir variável PORT do Railway
 # Bind em 0.0.0.0 para aceitar conexões de qualquer IP (produção)
-# --timeout 600: 10 minutos para processamento longo (ingestão de PDFs)
-CMD ["sh", "-c", "gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000} --timeout 600"]
+# --timeout 1800: 30 minutos para acomodar retries de 10 minutos da OpenAI
+# (com 5 tentativas de 10 min cada = 50 min máximo, mas timeout de 30 min é suficiente para requests HTTP normais)
+CMD ["sh", "-c", "gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000} --timeout 1800"]
 

@@ -29,25 +29,35 @@ class EmbeddingGenerator:
         
         logger.info("EmbeddingGenerator inicializado")
     
-    def generate(self, text: str) -> List[float]:
+    def generate(self, text: str, max_retries: int = 3) -> List[float]:
         """
         Gerar embedding para um texto.
         
         Args:
             text: Texto para gerar embedding
+            max_retries: Número máximo de tentativas
         
         Returns:
             Lista de floats representando o embedding
         """
-        try:
-            response = self.client.embeddings.create(
-                model=self.model,
-                input=text
-            )
-            
-            return response.data[0].embedding
+        import time
         
-        except Exception as e:
-            logger.error(f"Erro ao gerar embedding: {str(e)}")
-            raise
+        for attempt in range(max_retries):
+            try:
+                response = self.client.embeddings.create(
+                    model=self.model,
+                    input=text,
+                    timeout=30.0  # Timeout de 30 segundos
+                )
+                
+                return response.data[0].embedding
+            
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) + (attempt * 0.1)  # Backoff exponencial
+                    logger.warning(f"Erro ao gerar embedding (tentativa {attempt + 1}/{max_retries}): {str(e)}. Aguardando {wait_time:.1f}s...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"Erro ao gerar embedding após {max_retries} tentativas: {str(e)}")
+                    raise
 

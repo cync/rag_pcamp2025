@@ -98,8 +98,8 @@ class IngestionPipeline:
                 # 3. Processar cada chunk
                 for chunk_idx, chunk in enumerate(all_chunks, 1):
                     try:
-                        # Gerar embedding
-                        embedding = self.embedding_generator.generate(chunk["text"])
+                        # Gerar embedding (com retry automático)
+                        embedding = self.embedding_generator.generate(chunk["text"], max_retries=5)
                         
                         # Preparar metadados completos
                         chunk_metadata = {
